@@ -33,21 +33,37 @@ software-engineering-hw/
 
 ## 빠른 시작
 
-### Project #3 제출물 확인
-```bash
-# 소스 코드: src/
-# 테스트 코드: tests/
-# 문서: docs/
-```
+### 사전 요구사항
+- GCC 컴파일러 (Windows: MSYS2/MinGW, Linux/Mac: 기본 설치)
+- C99 표준 지원
 
-### 테스트 실행
-```bash
-cd tests
+### 테스트 실행 방법
 
-gcc -Wall -std=c99 -DUNIT_TEST -I. -I../src -Iunity unity/unity.c test_harness.c stubs/sensor_stub.c stubs/actuator_stub.c drivers/test_driver.c unit/test_unit.c integration/test_integration.c system/test_system.c test_runner.c ../src/sensors.c ../src/fsm.c ../src/actuators.c ../src/main.c -o test_runner.exe
+1. **테스트 디렉토리로 이동**
+   ```bash
+   cd tests
+   ```
 
-./test_runner.exe
-```
+2. **테스트 빌드**
+   ```bash
+   gcc -Wall -std=c99 -DUNIT_TEST -I. -I../src -Iunity unity/unity.c test_harness.c stubs/sensor_stub.c stubs/actuator_stub.c drivers/test_driver.c unit/test_unit.c integration/test_integration.c system/test_system.c test_runner.c ../src/sensors.c ../src/fsm.c ../src/actuators.c ../src/main.c -o test_runner.exe
+   ```
+
+3. **테스트 실행**
+   ```bash
+   ./test_runner.exe
+   ```
+
+### 예상 결과
+- Unit Tests: 10개 통과
+- Integration Tests: 10개 통과  
+- System Tests: 10개 통과
+- **총 30개 테스트 모두 통과**
+
+### 프로젝트 구조
+- **소스 코드**: `src/` (Project #2 코드, 수정 금지)
+- **테스트 코드**: `tests/` (Project #3 테스트)
+- **문서**: `docs/`
 
 ## 참고 문서
 - 참고 문서는 `docs/` 폴더에 있습니다.
