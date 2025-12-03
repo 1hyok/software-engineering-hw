@@ -67,10 +67,12 @@ void test_system_obstacle_avoidance(void) {
     ctx.sensors.right = true;
     
     // sensor_interface(&ctx.sensors);
+    fsm_executor(&ctx);  /* 상태 전이 */
+    TEST_ASSERT_EQUAL_INT(STATE_TURNING, ctx.state);
+    
+    /* 다음 tick에서 회전 명령 설정 */
     fsm_executor(&ctx);
     actuator_interface(&ctx);
-    
-    TEST_ASSERT_EQUAL_INT(STATE_TURNING, ctx.state);
     TEST_ASSERT_EQUAL_INT(MOTOR_TURN_LEFT, ctx.motor_cmd);
     
     /* 회전 완료 후 전진 복귀 */
@@ -92,16 +94,18 @@ void test_system_dust_cleaning(void) {
     ctx.sensors.front = false;
     
     // sensor_interface(&ctx.sensors);
+    fsm_executor(&ctx);  /* 상태 전이 */
+    TEST_ASSERT_EQUAL_INT(STATE_DUST_CLEANING, ctx.state);
+    
+    /* 다음 tick에서 STOP/POWERUP 명령 설정 */
+    ctx.sensors.dust = false;  /* 센서 해제 */
     fsm_executor(&ctx);
     actuator_interface(&ctx);
-    
-    TEST_ASSERT_EQUAL_INT(STATE_DUST_CLEANING, ctx.state);
     TEST_ASSERT_EQUAL_INT(MOTOR_STOP, ctx.motor_cmd);
     TEST_ASSERT_EQUAL_INT(CLEANER_POWERUP, ctx.cleaner_cmd);
     
     /* 청소 완료 후 전진 복귀 */
     ctx.dust_clean_timer = 1;
-    ctx.sensors.dust = false;  /* 먼지 센서 해제 */
     fsm_executor(&ctx);
     
     TEST_ASSERT_EQUAL_INT(STATE_MOVING, ctx.state);
@@ -255,14 +259,20 @@ void test_system_requirement_validation(void) {
     TEST_ASSERT_EQUAL_INT(MOTOR_TURN_LEFT, ctx.motor_cmd);
     
     /* 요구사항 2: 먼지 감지 시 Boost 모드 */
+    memset(&ctx, 0, sizeof(RVCContext));
     ctx.state = STATE_MOVING;
     ctx.sensors.dust = true;
     
-    fsm_executor(&ctx);
+    fsm_executor(&ctx);  /* 상태 전이 */
     TEST_ASSERT_EQUAL_INT(STATE_DUST_CLEANING, ctx.state);
+    
+    /* 다음 tick에서 POWERUP 명령 설정 */
+    ctx.sensors.dust = false;
+    fsm_executor(&ctx);
     TEST_ASSERT_EQUAL_INT(CLEANER_POWERUP, ctx.cleaner_cmd);
     
     /* 요구사항 3: 모든 방향 막힘 시 후진 */
+    memset(&ctx, 0, sizeof(RVCContext));
     ctx.state = STATE_TURNING;
     ctx.sensors.front = true;
     ctx.sensors.left = true;

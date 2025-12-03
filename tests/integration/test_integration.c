@@ -101,11 +101,12 @@ void test_obstacle_detection_flow(void) {
     ctx.sensors.right = true;
     
     // sensor_interface(&ctx.sensors);
+    fsm_executor(&ctx);  /* 상태 전이 */
+    TEST_ASSERT_EQUAL_INT(STATE_TURNING, ctx.state);
+    
+    /* 다음 tick에서 회전 명령 설정됨 */
     fsm_executor(&ctx);
     actuator_interface(&ctx);
-    
-    /* TURNING 상태로 전이하고 왼쪽 회전 명령 확인 */
-    TEST_ASSERT_EQUAL_INT(STATE_TURNING, ctx.state);
     TEST_ASSERT_EQUAL_INT(MOTOR_TURN_LEFT, ctx.motor_cmd);
 }
 
@@ -120,11 +121,13 @@ void test_dust_detection_flow(void) {
     ctx.sensors.front = false;
     
     // sensor_interface(&ctx.sensors);
+    fsm_executor(&ctx);  /* 상태 전이 */
+    TEST_ASSERT_EQUAL_INT(STATE_DUST_CLEANING, ctx.state);
+    
+    /* 다음 tick에서 STOP/POWERUP 명령 설정됨 */
+    ctx.sensors.dust = false;  /* 센서 해제 */
     fsm_executor(&ctx);
     actuator_interface(&ctx);
-    
-    /* DUST_CLEANING 상태로 전이하고 POWERUP 명령 확인 */
-    TEST_ASSERT_EQUAL_INT(STATE_DUST_CLEANING, ctx.state);
     TEST_ASSERT_EQUAL_INT(MOTOR_STOP, ctx.motor_cmd);
     TEST_ASSERT_EQUAL_INT(CLEANER_POWERUP, ctx.cleaner_cmd);
 }
