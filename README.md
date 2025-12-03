@@ -6,11 +6,9 @@
 
 ```
 software-engineering-hw/
-├── submission/           # Project #3 제출물 (현재 작업 중)
-├── project2_archive/    # Project #2 아카이브 (제출 완료)
-├── project3_working/    # Project #3 작업 파일
+├── src/                 # Project #2 소스 코드 (절대 수정 금지!)
+├── tests/               # Project #3 테스트 코드
 ├── docs/                # 참고 문서
-├── tests/               # 테스트 코드 (원본)
 └── README.md            # 이 파일
 ```
 
@@ -23,27 +21,32 @@ software-engineering-hw/
 
 ### Project #3 (진행 중)
 - **과제명**: Project #2 프로그램에 대한 xUnit 테스트
-- **제출물**: `submission/`
-- **작업 파일**: `project3_working/`
+- **위치**: `tests/`
 - **상태**: 작업 중
+
+## ⚠️ 중요 사항
+
+### Project #3 작업 규칙
+- **Project #2 코드(`src/`) 절대 수정 금지!**
+- 테스트 코드(`tests/`)만 수정 가능
+- FSM 원본 동작: 상태 전이 후 **다음 tick**에서 명령 설정됨
 
 ## 빠른 시작
 
 ### Project #3 제출물 확인
 ```bash
-cd submission
+# 소스 코드: src/
+# 테스트 코드: tests/
+# 문서: docs/
 ```
 
 ### 테스트 실행
 ```bash
-cd submission/tests
-# Windows
-build_tests.bat
-test_runner.exe
+cd tests
 
-# Linux/Mac
-make
-./test_runner
+gcc -Wall -std=c99 -DUNIT_TEST -I. -I../src -Iunity unity/unity.c test_harness.c stubs/sensor_stub.c stubs/actuator_stub.c drivers/test_driver.c unit/test_unit.c integration/test_integration.c system/test_system.c test_runner.c ../src/sensors.c ../src/fsm.c ../src/actuators.c ../src/main.c -o test_runner.exe
+
+./test_runner.exe
 ```
 
 ## 참고 문서
