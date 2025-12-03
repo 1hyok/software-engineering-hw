@@ -25,28 +25,18 @@ tests/
 ├── system/                   # System Tests (10개)
 │   └── test_system.c
 ├── test_runner.c             # 메인 테스트 러너
-├── build_tests.bat           # Windows 빌드 스크립트
-├── Makefile                  # Linux/Mac 빌드 파일
 ├── TEST_DOCUMENTATION.md     # 상세 테스트 문서
 └── README.md                 # 이 파일
 ```
 
 ## 빌드 및 실행
 
-### Windows
-
-```batch
-cd tests
-build_tests.bat
-test_runner.exe
-```
-
-### Linux/Mac
-
 ```bash
 cd tests
-make
-./test_runner
+
+gcc -Wall -std=c99 -DUNIT_TEST -I. -I../src -Iunity unity/unity.c test_harness.c stubs/sensor_stub.c stubs/actuator_stub.c drivers/test_driver.c unit/test_unit.c integration/test_integration.c system/test_system.c test_runner.c ../src/sensors.c ../src/fsm.c ../src/actuators.c ../src/main.c -o test_runner.exe
+
+./test_runner.exe
 ```
 
 ## 테스트 구성
@@ -60,4 +50,3 @@ make
 ## 상세 문서
 
 자세한 테스트 내용과 결과는 `TEST_DOCUMENTATION.md`를 참조하세요.
-
