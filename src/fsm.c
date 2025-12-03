@@ -42,12 +42,21 @@ void fsm_executor(RVCContext *ctx) {
                 ctx->state = STATE_DUST_CLEANING;
                 ctx->dust_clean_timer = 5;  // 먼지 청소 상태를 5 tick 동안 유지
                 ctx->state_duration = 0; // 상태의 tick 수를 0으로 리셋
+                ctx->motor_cmd = MOTOR_STOP;
+                ctx->cleaner_cmd = CLEANER_POWERUP;
                 printf("[FSM] MOVING -> DUST_CLEANING (dust detected)\n");
             } 
             else if (ctx->sensors.front) {
                 // SA PDF p.13 "Moving → Turning (Front Obstacle)"
                 ctx->state = STATE_TURNING;
                 ctx->state_duration = 0;
+                // 회전 방향 결정
+                TurnDirection turn = decide_turn_priority(&ctx->sensors);
+                if (turn == TURN_LEFT) {
+                    ctx->motor_cmd = MOTOR_TURN_LEFT;
+                } else if (turn == TURN_RIGHT) {
+                    ctx->motor_cmd = MOTOR_TURN_RIGHT;
+                }
                 printf("[FSM] MOVING -> TURNING (front obstacle)\n");
             }
             break;
