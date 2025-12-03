@@ -13,58 +13,6 @@
 extern "C" {
 #endif
 
-void UnityBegin(const char* filename);
-void UnityEnd(void);
-void UnityConcludeTest(void);
-
-void UnityTestFile(const char* filename);
-void UnityDefaultTestRun(void);
-
-void UnityAssertEqualNumber(const UNITY_INT expected,
-                            const UNITY_INT actual,
-                            const char* msg,
-                            const UNITY_LINE_TYPE lineNumber,
-                            const UNITY_DISPLAY_STYLE_T style);
-
-void UnityAssertEqualInt(const UNITY_INT expected,
-                         const UNITY_INT actual,
-                         const char* msg,
-                         const UNITY_LINE_TYPE lineNumber);
-
-void UnityAssertEqualIntArray(const UNITY_INT* expected,
-                               const UNITY_INT* actual,
-                               const UNITY_UINT32 num_elements,
-                               const char* msg,
-                               const UNITY_LINE_TYPE lineNumber,
-                               const UNITY_DISPLAY_STYLE_T style);
-
-void UnityAssertEqualMemory(const void* expected,
-                            const void* actual,
-                            const UNITY_UINT32 length,
-                            const UNITY_UINT32 num_elements,
-                            const char* msg,
-                            const UNITY_LINE_TYPE lineNumber);
-
-void UnityAssertEqualString(const char* expected,
-                            const char* actual,
-                            const char* msg,
-                            const UNITY_LINE_TYPE lineNumber);
-
-void UnityAssertEqualStringArray(const char** expected,
-                                  const char** actual,
-                                  const UNITY_UINT32 num_elements,
-                                  const char* msg,
-                                  const UNITY_LINE_TYPE lineNumber);
-
-void UnityAssertEqualFloat(const UNITY_FLOAT expected,
-                           const UNITY_FLOAT actual,
-                           const char* msg,
-                           const UNITY_LINE_TYPE lineNumber);
-
-void UnityFail(const char* msg, const UNITY_LINE_TYPE line);
-
-void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line);
-
 #ifndef UNITY_EXCLUDE_SETJMP_H
 #include <setjmp.h>
 #endif
@@ -89,29 +37,13 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line);
 #include <string.h>
 #endif
 
-#ifndef UNITY_EXCLUDE_FLOAT
-#define UNITY_FLOAT_TYPE float
-#define UNITY_FLOAT_ABSOLUTE_TYPE float
-#endif
-
-#ifndef UNITY_DOUBLE_TYPE
-#define UNITY_DOUBLE_TYPE double
-#endif
-
-#ifndef UNITY_INTERNAL_PTR
-#define UNITY_INTERNAL_PTR UNITY_PTR_ATTRIBUTE
-#endif
-
+/* Type definitions - must come before function declarations */
 #ifndef UNITY_PTR_ATTRIBUTE
 #define UNITY_PTR_ATTRIBUTE
 #endif
 
-#ifndef UNITY_LINE_TYPE
-#define UNITY_LINE_TYPE UNITY_UINT
-#endif
-
-#ifndef UNITY_COUNTER_TYPE
-#define UNITY_COUNTER_TYPE UNITY_UINT
+#ifndef UNITY_INTERNAL_PTR
+#define UNITY_INTERNAL_PTR UNITY_PTR_ATTRIBUTE
 #endif
 
 #ifndef UNITY_UINT
@@ -146,50 +78,132 @@ void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line);
 #define UNITY_INT32 signed long
 #endif
 
+#ifndef UNITY_UINT64
+#define UNITY_UINT64 unsigned long long
+#endif
+
+#ifndef UNITY_INT64
+#define UNITY_INT64 signed long long
+#endif
+
+#ifndef UNITY_LINE_TYPE
+#define UNITY_LINE_TYPE UNITY_UINT
+#endif
+
+#ifndef UNITY_COUNTER_TYPE
+#define UNITY_COUNTER_TYPE UNITY_UINT
+#endif
+
+#ifndef UNITY_EXCLUDE_FLOAT
+#define UNITY_FLOAT_TYPE float
+#define UNITY_FLOAT_ABSOLUTE_TYPE float
+#ifndef UNITY_FLOAT
+#define UNITY_FLOAT float
+#endif
+#else
+#ifndef UNITY_FLOAT
+#define UNITY_FLOAT float
+#endif
+#endif
+
+#ifndef UNITY_DOUBLE_TYPE
+#define UNITY_DOUBLE_TYPE double
+#endif
+
 #ifndef UNITY_POINTER_WIDTH
 #define UNITY_POINTER_WIDTH (sizeof(void*))
 #endif
 
-#ifndef UNITY_DISPLAY_STYLE_INT
-#define UNITY_DISPLAY_STYLE_INT UNITY_DISPLAY_STYLE_HEX32
-#endif
-
-#ifndef UNITY_DISPLAY_STYLE_UINT
-#define UNITY_DISPLAY_STYLE_UINT UNITY_DISPLAY_STYLE_HEX32
-#endif
-
-#ifndef UNITY_DISPLAY_STYLE_HEX8
-#define UNITY_DISPLAY_STYLE_HEX8  (UNITY_UINT8)
-#endif
-
-#ifndef UNITY_DISPLAY_STYLE_HEX16
-#define UNITY_DISPLAY_STYLE_HEX16 (UNITY_UINT16)
-#endif
-
-#ifndef UNITY_DISPLAY_STYLE_HEX32
-#define UNITY_DISPLAY_STYLE_HEX32 (UNITY_UINT32)
-#endif
-
-#ifndef UNITY_DISPLAY_STYLE_HEX64
-#define UNITY_DISPLAY_STYLE_HEX64 (UNITY_UINT64)
-#endif
-
+/* Display style enum - define enum first, then macros reference it */
 typedef enum
 {
-    UNITY_DISPLAY_STYLE_INT = UNITY_DISPLAY_STYLE_INT,
-    UNITY_DISPLAY_STYLE_INT8 = UNITY_DISPLAY_STYLE_HEX8,
-    UNITY_DISPLAY_STYLE_INT16 = UNITY_DISPLAY_STYLE_HEX16,
-    UNITY_DISPLAY_STYLE_INT32 = UNITY_DISPLAY_STYLE_HEX32,
-    UNITY_DISPLAY_STYLE_UINT = UNITY_DISPLAY_STYLE_UINT,
-    UNITY_DISPLAY_STYLE_UINT8 = UNITY_DISPLAY_STYLE_HEX8,
-    UNITY_DISPLAY_STYLE_UINT16 = UNITY_DISPLAY_STYLE_HEX16,
-    UNITY_DISPLAY_STYLE_UINT32 = UNITY_DISPLAY_STYLE_HEX32,
-    UNITY_DISPLAY_STYLE_HEX8 = UNITY_DISPLAY_STYLE_HEX8,
-    UNITY_DISPLAY_STYLE_HEX16 = UNITY_DISPLAY_STYLE_HEX16,
-    UNITY_DISPLAY_STYLE_HEX32 = UNITY_DISPLAY_STYLE_HEX32,
-    UNITY_DISPLAY_STYLE_HEX64 = UNITY_DISPLAY_STYLE_HEX64,
-    UNITY_DISPLAY_STYLE_CHAR = UNITY_DISPLAY_STYLE_HEX8
+    UNITY_DISPLAY_STYLE_INT = 32,
+    UNITY_DISPLAY_STYLE_INT8 = 8,
+    UNITY_DISPLAY_STYLE_INT16 = 16,
+    UNITY_DISPLAY_STYLE_INT32 = 32,
+    UNITY_DISPLAY_STYLE_UINT = 32,
+    UNITY_DISPLAY_STYLE_UINT8 = 8,
+    UNITY_DISPLAY_STYLE_UINT16 = 16,
+    UNITY_DISPLAY_STYLE_UINT32 = 32,
+    UNITY_DISPLAY_STYLE_HEX8 = 8,
+    UNITY_DISPLAY_STYLE_HEX16 = 16,
+    UNITY_DISPLAY_STYLE_HEX32 = 32,
+    UNITY_DISPLAY_STYLE_HEX64 = 64,
+    UNITY_DISPLAY_STYLE_CHAR = 8
 } UNITY_DISPLAY_STYLE_T;
+
+/* Macros are not needed - enum values can be used directly */
+#ifndef UNITY_DISPLAY_STYLE_POINTER
+#define UNITY_DISPLAY_STYLE_POINTER UNITY_DISPLAY_STYLE_HEX32
+#endif
+
+/* Unity Storage */
+struct UNITY_STORAGE_T {
+    const char* TestFile;
+    const char* CurrentTestName;
+    UNITY_LINE_TYPE CurrentTestLineNumber;
+    UNITY_INT NumberOfTests;
+    UNITY_INT TestFailures;
+    UNITY_INT TestIgnores;
+    UNITY_INT CurrentTestFailed;
+    UNITY_INT CurrentTestIgnored;
+    jmp_buf AbortFrame;
+};
+
+extern struct UNITY_STORAGE_T Unity;
+
+/* Function declarations */
+void UnityBegin(const char* filename);
+void UnityEnd(void);
+void UnityConcludeTest(void);
+
+void UnityTestFile(const char* filename);
+void UnityDefaultTestRun(void);
+
+void UnityAssertEqualNumber(const UNITY_INT expected,
+                            const UNITY_INT actual,
+                            const char* msg,
+                            const UNITY_LINE_TYPE lineNumber,
+                            const UNITY_DISPLAY_STYLE_T style);
+
+void UnityAssertEqualInt(const UNITY_INT expected,
+                         const UNITY_INT actual,
+                         const char* msg,
+                         const UNITY_LINE_TYPE lineNumber);
+
+void UnityAssertEqualIntArray(const UNITY_INT* expected,
+                              const UNITY_INT* actual,
+                              const UNITY_UINT32 num_elements,
+                              const char* msg,
+                              const UNITY_LINE_TYPE lineNumber,
+                              const UNITY_DISPLAY_STYLE_T style);
+
+void UnityAssertEqualMemory(const void* expected,
+                            const void* actual,
+                            const UNITY_UINT32 length,
+                            const UNITY_UINT32 num_elements,
+                            const char* msg,
+                            const UNITY_LINE_TYPE lineNumber);
+
+void UnityAssertEqualString(const char* expected,
+                            const char* actual,
+                            const char* msg,
+                            const UNITY_LINE_TYPE lineNumber);
+
+void UnityAssertEqualStringArray(const char** expected,
+                                  const char** actual,
+                                  const UNITY_UINT32 num_elements,
+                                  const char* msg,
+                                  const UNITY_LINE_TYPE lineNumber);
+
+void UnityAssertEqualFloat(const UNITY_FLOAT expected,
+                           const UNITY_FLOAT actual,
+                           const char* msg,
+                           const UNITY_LINE_TYPE lineNumber);
+
+void UnityFail(const char* msg, const UNITY_LINE_TYPE line);
+
+void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line);
 
 typedef void (*UnityTestFunction)(void);
 
@@ -334,7 +348,7 @@ typedef void (*UnityTestFunction)(void);
         UnityConcludeTest(); \
     } while(0)
 
-#define TEST_PROTECT() (setjmp(Unity.TestFailures) == 0)
+#define TEST_PROTECT() (setjmp(Unity.AbortFrame) == 0)
 
 #define UNITY_BEGIN() UnityBegin(__FILE__)
 #define UNITY_END() UnityEnd()

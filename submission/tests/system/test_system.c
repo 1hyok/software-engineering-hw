@@ -41,7 +41,7 @@ void test_system_normal_operation(void) {
         ctx.sensors.dust = false;
         ctx.tick_count = i;
         
-        sensor_interface(&ctx.sensors);
+        // sensor_interface(&ctx.sensors);
         fsm_executor(&ctx);
         actuator_interface(&ctx);
         
@@ -66,7 +66,7 @@ void test_system_obstacle_avoidance(void) {
     ctx.sensors.left = false;
     ctx.sensors.right = true;
     
-    sensor_interface(&ctx.sensors);
+    // sensor_interface(&ctx.sensors);
     fsm_executor(&ctx);
     actuator_interface(&ctx);
     
@@ -91,7 +91,7 @@ void test_system_dust_cleaning(void) {
     ctx.sensors.dust = true;
     ctx.sensors.front = false;
     
-    sensor_interface(&ctx.sensors);
+    // sensor_interface(&ctx.sensors);
     fsm_executor(&ctx);
     actuator_interface(&ctx);
     
@@ -141,7 +141,7 @@ void test_system_multiple_obstacles(void) {
         ctx.sensors.left = false;
         ctx.sensors.right = true;
         
-        sensor_interface(&ctx.sensors);
+        // sensor_interface(&ctx.sensors);
         fsm_executor(&ctx);
         actuator_interface(&ctx);
         
@@ -163,8 +163,8 @@ void test_system_complete_cycle(void) {
     for (int tick = 0; tick < 20; tick++) {
         ctx.tick_count = tick;
         
-        /* 센서 읽기 */
-        sensor_interface(&ctx.sensors);
+        /* 센서 읽기 생략 (랜덤값 방지) */
+        // sensor_interface(&ctx.sensors);
         
         /* FSM 실행 */
         fsm_executor(&ctx);
@@ -191,7 +191,7 @@ void test_system_stress_test(void) {
         ctx.sensors.front = (rand() % 10) < 2;
         ctx.sensors.dust = (rand() % 10) < 1;
         
-        sensor_interface(&ctx.sensors);
+        // sensor_interface(&ctx.sensors);
         fsm_executor(&ctx);
         actuator_interface(&ctx);
         

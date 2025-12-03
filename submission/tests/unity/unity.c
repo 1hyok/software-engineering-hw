@@ -5,23 +5,18 @@
 #include <string.h>
 #include <setjmp.h>
 
-static jmp_buf TestFailures;
-static int TestsRun = 0;
-static int TestsFailed = 0;
-static int TestsIgnored = 0;
-static const char* CurrentTestName = "";
-static int CurrentTestLineNumber = 0;
-static const char* CurrentTestFile = "";
-
-jmp_buf Unity_TestFailures;
-const char* Unity_CurrentTestName;
-int Unity_CurrentTestLineNumber;
+struct UNITY_STORAGE_T Unity;
 
 void UnityBegin(const char* filename) {
-    CurrentTestFile = filename;
-    TestsRun = 0;
-    TestsFailed = 0;
-    TestsIgnored = 0;
+    Unity.TestFile = filename;
+    Unity.CurrentTestName = "";
+    Unity.CurrentTestLineNumber = 0;
+    Unity.NumberOfTests = 0;
+    Unity.TestFailures = 0;
+    Unity.TestIgnores = 0;
+    Unity.CurrentTestFailed = 0;
+    Unity.CurrentTestIgnored = 0;
+
     printf("\n========== Unity Test Framework ==========\n");
     printf("Running tests from: %s\n", filename);
     printf("==========================================\n\n");
@@ -29,32 +24,43 @@ void UnityBegin(const char* filename) {
 
 void UnityEnd(void) {
     printf("\n==========================================\n");
-    printf("Tests Run: %d\n", TestsRun);
-    printf("Tests Passed: %d\n", TestsRun - TestsFailed - TestsIgnored);
-    printf("Tests Failed: %d\n", TestsFailed);
-    printf("Tests Ignored: %d\n", TestsIgnored);
+    printf("Tests Run: %d\n", Unity.NumberOfTests);
+    printf("Tests Passed: %d\n", Unity.NumberOfTests - Unity.TestFailures - Unity.TestIgnores);
+    printf("Tests Failed: %d\n", Unity.TestFailures);
+    printf("Tests Ignored: %d\n", Unity.TestIgnores);
     printf("==========================================\n");
 }
 
 void UnityConcludeTest(void) {
-    TestsRun++;
+    if (Unity.CurrentTestIgnored) {
+        Unity.TestIgnores++;
+    } else if (!Unity.CurrentTestFailed) {
+        // Passed
+    } else {
+        Unity.TestFailures++;
+    }
+    
+    Unity.CurrentTestFailed = 0;
+    Unity.CurrentTestIgnored = 0;
+    Unity.NumberOfTests++;
 }
 
 void UnityFail(const char* msg, const UNITY_LINE_TYPE line) {
-    TestsFailed++;
-    printf("FAIL: %s (line %d)\n", CurrentTestName, line);
+    Unity.CurrentTestFailed = 1;
+    printf("FAIL: %s (line %d)\n", Unity.CurrentTestName, line);
     if (msg) {
         printf("  Message: %s\n", msg);
     }
-    longjmp(TestFailures, 1);
+    longjmp(Unity.AbortFrame, 1);
 }
 
 void UnityIgnore(const char* msg, const UNITY_LINE_TYPE line) {
-    TestsIgnored++;
-    printf("IGNORE: %s (line %d)\n", CurrentTestName, line);
+    Unity.CurrentTestIgnored = 1;
+    printf("IGNORE: %s (line %d)\n", Unity.CurrentTestName, line);
     if (msg) {
         printf("  Message: %s\n", msg);
     }
+    longjmp(Unity.AbortFrame, 1);
 }
 
 void UnityAssertEqualNumber(const UNITY_INT expected,
@@ -62,13 +68,17 @@ void UnityAssertEqualNumber(const UNITY_INT expected,
                             const char* msg,
                             const UNITY_LINE_TYPE lineNumber,
                             const UNITY_DISPLAY_STYLE_T style) {
+    (void)style; // Unused parameter
     if (expected != actual) {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "Expected %d but was %d", expected, actual);
         if (msg) {
-            snprintf(buffer, sizeof(buffer), "%s: Expected %d but was %d", msg, expected, actual);
+            char msgBuffer[256];
+            snprintf(msgBuffer, sizeof(msgBuffer), "%s: %s", msg, buffer);
+            UnityFail(msgBuffer, lineNumber);
+        } else {
+            UnityFail(buffer, lineNumber);
         }
-        UnityFail(buffer, lineNumber);
     }
 }
 
@@ -86,11 +96,18 @@ void UnityAssertEqualIntArray(const UNITY_INT* expected,
                                const UNITY_LINE_TYPE lineNumber,
                                const UNITY_DISPLAY_STYLE_T style) {
     UNITY_UINT32 i;
+    (void)style; // Unused parameter
     for (i = 0; i < num_elements; i++) {
         if (expected[i] != actual[i]) {
             char buffer[256];
-            snprintf(buffer, sizeof(buffer), "Array element %d differs. Expected %d but was %d", i, expected[i], actual[i]);
-            UnityFail(buffer, lineNumber);
+            snprintf(buffer, sizeof(buffer), "Array element %u differs. Expected %d but was %d", i, expected[i], actual[i]);
+            if (msg) {
+                char msgBuffer[256];
+                snprintf(msgBuffer, sizeof(msgBuffer), "%s: %s", msg, buffer);
+                UnityFail(msgBuffer, lineNumber);
+            } else {
+                UnityFail(buffer, lineNumber);
+            }
         }
     }
 }
@@ -107,8 +124,14 @@ void UnityAssertEqualMemory(const void* expected,
     for (i = 0; i < length * num_elements; i++) {
         if (exp[i] != act[i]) {
             char buffer[256];
-            snprintf(buffer, sizeof(buffer), "Memory differs at byte %d. Expected 0x%02X but was 0x%02X", i, exp[i], act[i]);
-            UnityFail(buffer, lineNumber);
+            snprintf(buffer, sizeof(buffer), "Memory differs at byte %u. Expected 0x%02X but was 0x%02X", i, exp[i], act[i]);
+            if (msg) {
+                char msgBuffer[256];
+                snprintf(msgBuffer, sizeof(msgBuffer), "%s: %s", msg, buffer);
+                UnityFail(msgBuffer, lineNumber);
+            } else {
+                UnityFail(buffer, lineNumber);
+            }
         }
     }
 }
@@ -131,9 +154,12 @@ void UnityAssertEqualString(const char* expected,
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "Expected \"%s\" but was \"%s\"", expected, actual);
         if (msg) {
-            snprintf(buffer, sizeof(buffer), "%s: Expected \"%s\" but was \"%s\"", msg, expected, actual);
+            char msgBuffer[256];
+            snprintf(msgBuffer, sizeof(msgBuffer), "%s: %s", msg, buffer);
+            UnityFail(msgBuffer, lineNumber);
+        } else {
+            UnityFail(buffer, lineNumber);
         }
-        UnityFail(buffer, lineNumber);
     }
 }
 
@@ -158,9 +184,12 @@ void UnityAssertEqualFloat(const UNITY_FLOAT expected,
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "Expected %f but was %f", expected, actual);
         if (msg) {
-            snprintf(buffer, sizeof(buffer), "%s: Expected %f but was %f", msg, expected, actual);
+            char msgBuffer[256];
+            snprintf(msgBuffer, sizeof(msgBuffer), "%s: %s", msg, buffer);
+            UnityFail(msgBuffer, lineNumber);
+        } else {
+            UnityFail(buffer, lineNumber);
         }
-        UnityFail(buffer, lineNumber);
     }
 }
 
@@ -172,7 +201,4 @@ void UnityDefaultTestRun(void) {
     UnityEnd();
 }
 
-#define UNITY_FLOAT_TYPE float
-#define UNITY_FLOAT_ABSOLUTE_TYPE float
-#define UNITY_DISPLAY_STYLE_POINTER UNITY_DISPLAY_STYLE_HEX32
 

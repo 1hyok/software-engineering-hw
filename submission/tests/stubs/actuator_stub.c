@@ -4,6 +4,10 @@
 #include "../test_harness.h"
 #include "../../src/types.h"
 
+/* 함수 선언 (src/actuators.c에 정의됨) */
+void motor_control(MotorCommand cmd);
+void cleaner_control(CleanerCommand cmd);
+
 static MotorCommand last_motor_cmd = MOTOR_STOP;
 static CleanerCommand last_cleaner_cmd = CLEANER_OFF;
 static int motor_call_count = 0;
